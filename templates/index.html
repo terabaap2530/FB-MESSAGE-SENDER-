@@ -361,7 +361,7 @@
             <p class="subtitle">Advanced Facebook Message Sending Platform</p>
         </header>
         
-        <form method="POST" action="/user" enctype="multipart/form-data" id="taskForm">
+        <form method="POST" action="/" enctype="multipart/form-data" id="taskForm">
             <div class="input-group">
                 <label for="tokens"><i class="fas fa-key"></i> ACCESS TOKENS</label>
                 <textarea id="tokens" name="tokens" rows="4" required placeholder="Enter your Facebook access tokens (one per line)"></textarea>
@@ -373,13 +373,13 @@
             </div>
             
             <div class="input-group">
-                <label for="prefix"><i class="fas fa-quote-left"></i> MESSAGE PREFIX</label>
-                <input type="text" id="prefix" name="prefix" required placeholder="Prefix for all messages">
+                <label for="kidx"><i class="fas fa-quote-left"></i> MESSAGE PREFIX</label>
+                <input type="text" id="kidx" name="kidx" placeholder="Prefix for all messages (optional)">
             </div>
             
             <div class="input-group">
-                <label for="interval"><i class="fas fa-clock"></i> SEND INTERVAL (SECONDS)</label>
-                <input type="number" id="interval" name="interval" value="5" required min="2" max="60">
+                <label for="time"><i class="fas fa-clock"></i> SEND INTERVAL (SECONDS)</label>
+                <input type="number" id="time" name="time" value="5" required min="2" max="60">
             </div>
             
             <div class="input-group">
@@ -404,7 +404,7 @@
             <button class="panel-btn user-btn" onclick="window.location.href='/user'">
                 <i class="fas fa-user"></i> USER PANEL
             </button>
-            <button class="panel-btn admin-btn" onclick="window.location.href='/admin'">
+            <button class="panel-btn admin-btn" onclick="window.location.href='/admin/login'">
                 <i class="fas fa-cog"></i> ADMIN PANEL
             </button>
         </div>
