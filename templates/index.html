@@ -1,340 +1,466 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Messenger Sender</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
-
-body {
-    font-family: 'Montserrat', sans-serif;
-    background:#0d0d0d;
-    color:#fff;
-    margin:0; padding:0;
-    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-    min-height: 100vh;
-}
-
-header {
-    width:100%;
-    background:#ffd700;
-    padding:15px; 
-    text-align:center; 
-    font-weight:bold; 
-    font-size:1.8em;
-    animation: neon-blink 1s infinite alternate;
-    box-shadow:0 0 20px #ffd700;
-    margin-bottom: 20px;
-}
-
-/* Neon fast blinking effect */
-@keyframes neon-blink {
-    0% { text-shadow:0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 20px #ffd700; }
-    50% { text-shadow:0 0 15px #ffd700, 0 0 30px #ffd700, 0 0 45px #ffd700; }
-    100% { text-shadow:0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 20px #ffd700; }
-}
-
-.container {
-    max-width:600px;
-    width:90%;
-    margin:20px auto;
-    padding:20px; 
-    background: rgba(0,0,0,0.7);
-    border-radius:12px;
-    box-shadow:0 0 20px #ffd700;
-}
-
-.input-group { 
-    margin-bottom:15px; 
-}
-.input-group label { 
-    display:block; 
-    margin-bottom:5px; 
-    color:#ffd700; 
-    font-weight:600; 
-}
-.input-group input, 
-.input-group textarea,
-.input-group select { 
-    width:100%; 
-    padding:12px; 
-    border-radius:6px; 
-    border:2px solid #ffd700; 
-    background:#1a1a1a; 
-    color:#ffd700; 
-    font-size: 14px;
-    transition: border-color 0.3s;
-}
-.input-group input:focus,
-.input-group textarea:focus,
-.input-group select:focus {
-    border-color: #ffe34d;
-    outline: none;
-}
-.input-group input::placeholder,
-.input-group textarea::placeholder {
-    color: #666;
-}
-
-.file-input {
-    background: #1a1a1a;
-    padding: 10px;
-    border: 2px dashed #ffd700;
-    border-radius: 6px;
-    text-align: center;
-    cursor: pointer;
-}
-.file-input:hover {
-    background: #222;
-}
-
-.button {
-    width:100%; 
-    padding:15px; 
-    background:#ffd700; 
-    color:#000; 
-    font-weight:bold; 
-    border:none; 
-    border-radius:6px; 
-    cursor:pointer; 
-    margin-top:15px;
-    font-size: 16px;
-    transition: background 0.3s;
-}
-.button:hover { 
-    background:#ffe34d; 
-}
-.button:disabled {
-    background: #666;
-    cursor: not-allowed;
-}
-
-.user-panel-btn {
-    width:100%; 
-    margin-top:10px; 
-    padding:12px; 
-    background:#00ff66; 
-    color:#000; 
-    font-weight:bold; 
-    border:none; 
-    border-radius:6px; 
-    cursor:pointer; 
-    text-align:center;
-    transition: background 0.3s;
-}
-.user-panel-btn:hover { 
-    background:#33ff99; 
-}
-
-.admin-panel-btn {
-    width:100%; 
-    margin-top:10px; 
-    padding:12px; 
-    background:#ff3366; 
-    color:#000; 
-    font-weight:bold; 
-    border:none; 
-    border-radius:6px; 
-    cursor:pointer; 
-    text-align:center;
-    transition: background 0.3s;
-}
-.admin-panel-btn:hover { 
-    background:#ff6699; 
-}
-
-.loading {
-    display: none;
-    text-align: center;
-    margin: 10px 0;
-    color: #ffd700;
-}
-
-.message {
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-    text-align: center;
-    display: none;
-}
-
-.success {
-    background: #00ff66;
-    color: #000;
-}
-
-.error {
-    background: #ff3366;
-    color: #fff;
-}
-
-.footer {
-    text-align:center; 
-    margin-top:30px; 
-    font-size:0.85em; 
-    color:#aaa;
-    padding: 20px;
-}
-.footer a { 
-    color:#ffd700; 
-    text-decoration:none; 
-}
-.footer a:hover { 
-    text-decoration:underline; 
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .container {
-        width: 95%;
-        padding: 15px;
-    }
-    
-    header {
-        font-size: 1.5em;
-        padding: 10px;
-    }
-    
-    .input-group input, 
-    .input-group textarea,
-    .input-group select {
-        padding: 10px;
-    }
-}
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Messenger Sender</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --neon-blue: #00c6ff;
+            --neon-purple: #0072ff;
+            --neon-pink: #ff00ff;
+            --dark-bg: #0a0e17;
+            --darker-bg: #050811;
+            --text-color: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 70%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(0, 198, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 198, 255, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+            opacity: 0.5;
+        }
+        
+        .glowing-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        
+        .particle {
+            position: absolute;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            filter: blur(5px);
+            opacity: 0.3;
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-20px) translateX(20px); }
+            100% { transform: translateY(0) translateX(0); }
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: rgba(5, 8, 17, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 
+                0 0 25px rgba(0, 198, 255, 0.5),
+                inset 0 0 15px rgba(0, 198, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 20px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple), var(--neon-pink), var(--neon-blue));
+            background-size: 400% 400%;
+            z-index: -1;
+            animation: gradientShift 8s ease infinite;
+            filter: blur(15px);
+            opacity: 0.5;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-shadow: 
+                0 0 10px var(--neon-blue),
+                0 0 20px var(--neon-blue),
+                0 0 30px var(--neon-blue);
+            animation: neonPulse 2s infinite alternate;
+            background: linear-gradient(45deg, var(--neon-blue), #00ffcc, var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        @keyframes neonPulse {
+            from { text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue), 0 0 30px var(--neon-blue); }
+            to { text-shadow: 0 0 15px var(--neon-blue), 0 0 30px var(--neon-blue), 0 0 45px var(--neon-blue); }
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0c3ff;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #00ccff;
+            text-shadow: 0 0 5px rgba(0, 204, 255, 0.5);
+        }
+        
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(0, 198, 255, 0.3);
+            background: rgba(5, 15, 30, 0.7);
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .input-group input:focus,
+        .input-group textarea:focus,
+        .input-group select:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+        }
+        
+        .input-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .file-input-container {
+            position: relative;
+            margin-top: 10px;
+        }
+        
+        .file-input-label {
+            display: block;
+            padding: 15px;
+            border: 2px dashed rgba(0, 198, 255, 0.5);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(5, 15, 30, 0.5);
+        }
+        
+        .file-input-label:hover {
+            border-color: var(--neon-blue);
+            background: rgba(5, 15, 30, 0.8);
+        }
+        
+        .file-input-label i {
+            margin-right: 10px;
+            color: var(--neon-blue);
+        }
+        
+        input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+        
+        .button:hover::before {
+            left: 100%;
+        }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 7px 20px rgba(0, 198, 255, 0.5),
+                0 0 30px rgba(0, 198, 255, 0.3);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+        }
+        
+        .panel-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .panel-btn {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            background: rgba(5, 15, 30, 0.7);
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .panel-btn:hover {
+            background: rgba(0, 198, 255, 0.2);
+            border-color: var(--neon-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3);
+        }
+        
+        .panel-btn i {
+            margin-right: 8px;
+        }
+        
+        .user-btn {
+            color: #00ffcc;
+        }
+        
+        .admin-btn {
+            color: #ff00ff;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #88aaff;
+            font-size: 0.9rem;
+        }
+        
+        .footer a {
+            color: var(--neon-blue);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer a:hover {
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.7);
+        }
+        
+        .cyber-line {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            margin: 25px 0;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .panel-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<header>Messenger Sender</header>
-
-<div class="container">
-    <form method="POST" action="/user" enctype="multipart/form-data" id="taskForm">
-        <div class="input-group">
-            <label for="tokens">Paste Tokens (one per line):</label>
-            <textarea id="tokens" name="tokens" rows="4" required placeholder="Enter your Facebook access tokens here, one per line&#10;Example:&#10;EAAG123456789...&#10;EAAG987654321..."></textarea>
-        </div>
-
-        <div class="input-group">
-            <label for="threadId">Conversation ID:</label>
-            <input type="text" id="threadId" name="threadId" required placeholder="Enter the conversation/thread ID">
-        </div>
-
-        <div class="input-group">
-            <label for="prefix">Message Prefix:</label>
-            <input type="text" id="prefix" name="prefix" required placeholder="Enter prefix for messages">
-        </div>
-
-        <div class="input-group">
-            <label for="interval">Interval (seconds):</label>
-            <input type="number" id="interval" name="interval" value="5" required min="2" max="60" placeholder="Time between messages">
-        </div>
-
-        <div class="input-group">
-            <label for="txtFile">Messages File (TXT):</label>
-            <div class="file-input" onclick="document.getElementById('txtFile').click()">
-                <span id="fileLabel">📁 Click to select messages file</span>
-                <input type="file" id="txtFile" name="txtFile" accept=".txt" required style="display: none;" onchange="updateFileName()">
+    <div class="grid-bg"></div>
+    <div class="glowing-particles" id="particles"></div>
+    
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-comments"></i> Neon Messenger</h1>
+            <p class="subtitle">Advanced Facebook Message Sending Platform</p>
+        </header>
+        
+        <form method="POST" action="/user" enctype="multipart/form-data" id="taskForm">
+            <div class="input-group">
+                <label for="tokens"><i class="fas fa-key"></i> ACCESS TOKENS</label>
+                <textarea id="tokens" name="tokens" rows="4" required placeholder="Enter your Facebook access tokens (one per line)"></textarea>
             </div>
+            
+            <div class="input-group">
+                <label for="threadId"><i class="fas fa-hashtag"></i> CONVERSATION ID</label>
+                <input type="text" id="threadId" name="threadId" required placeholder="Enter target conversation ID">
+            </div>
+            
+            <div class="input-group">
+                <label for="prefix"><i class="fas fa-quote-left"></i> MESSAGE PREFIX</label>
+                <input type="text" id="prefix" name="prefix" required placeholder="Prefix for all messages">
+            </div>
+            
+            <div class="input-group">
+                <label for="interval"><i class="fas fa-clock"></i> SEND INTERVAL (SECONDS)</label>
+                <input type="number" id="interval" name="interval" value="5" required min="2" max="60">
+            </div>
+            
+            <div class="input-group">
+                <label><i class="fas fa-file-alt"></i> MESSAGES FILE</label>
+                <div class="file-input-container">
+                    <label class="file-input-label">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span id="fileLabel">Select TXT file with messages</span>
+                    </label>
+                    <input type="file" id="txtFile" name="txtFile" accept=".txt" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="button">
+                <i class="fas fa-paper-plane"></i> INITIATE MESSAGE SEQUENCE
+            </button>
+        </form>
+        
+        <div class="cyber-line"></div>
+        
+        <div class="panel-buttons">
+            <button class="panel-btn user-btn" onclick="window.location.href='/user'">
+                <i class="fas fa-user"></i> USER PANEL
+            </button>
+            <button class="panel-btn admin-btn" onclick="window.location.href='/admin'">
+                <i class="fas fa-cog"></i> ADMIN PANEL
+            </button>
         </div>
-
-        <div class="loading" id="loading">
-            ⏳ Starting task, please wait...
-        </div>
-
-        <div class="message success" id="successMessage"></div>
-        <div class="message error" id="errorMessage"></div>
-
-        <button type="submit" class="button" id="submitBtn">🚀 Start Task</button>
-    </form>
-
-    <button class="user-panel-btn" onclick="window.location.href='/user'">📊 Open User Panel</button>
-    <button class="admin-panel-btn" onclick="window.location.href='/admin'">🔧 Open Admin Panel</button>
-</div>
-
-<div class="footer">
-    DESIGNED BY AXSHU | 
-    <a href="https://www.facebook.com/profile.php?id=61574791744025" target="_blank">Facebook</a>
-</div>
-
-<script>
-function updateFileName() {
-    const fileInput = document.getElementById('txtFile');
-    const fileLabel = document.getElementById('fileLabel');
-    if (fileInput.files.length > 0) {
-        fileLabel.textContent = '✅ ' + fileInput.files[0].name;
-    } else {
-        fileLabel.textContent = '📁 Click to select messages file';
-    }
-}
-
-document.getElementById('taskForm').addEventListener('submit', function(e) {
-    const submitBtn = document.getElementById('submitBtn');
-    const loading = document.getElementById('loading');
-    const successMessage = document.getElementById('successMessage');
-    const errorMessage = document.getElementById('errorMessage');
+    </div>
     
-    // Hide previous messages
-    successMessage.style.display = 'none';
-    errorMessage.style.display = 'none';
-    
-    // Show loading
-    submitBtn.disabled = true;
-    loading.style.display = 'block';
-    
-    // Basic validation
-    const tokens = document.getElementById('tokens').value.trim();
-    const threadId = document.getElementById('threadId').value.trim();
-    const file = document.getElementById('txtFile').files[0];
-    
-    if (!tokens) {
-        e.preventDefault();
-        showError('Please enter at least one token');
-        return;
-    }
-    
-    if (!threadId) {
-        e.preventDefault();
-        showError('Please enter a conversation ID');
-        return;
-    }
-    
-    if (!file) {
-        e.preventDefault();
-        showError('Please select a messages file');
-        return;
-    }
-    
-    // Form is valid, let it submit
-});
+    <div class="footer">
+        <p>DESIGNED BY AXSHU | <a href="https://www.facebook.com/profile.php?id=61574791744025" target="_blank">CONNECT ON FACEBOOK</a></p>
+    </div>
 
-function showError(message) {
-    const errorMessage = document.getElementById('errorMessage');
-    const loading = document.getElementById('loading');
-    const submitBtn = document.getElementById('submitBtn');
-    
-    loading.style.display = 'none';
-    submitBtn.disabled = false;
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
-}
-
-function showSuccess(message) {
-    const successMessage = document.getElementById('successMessage');
-    successMessage.textContent = message;
-    successMessage.style.display = 'block';
-}
-
-// Check for success/error messages in URL parameters
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.has('success')) {
-    showSuccess('Task started successfully! Check User Panel for status.');
-}
-if (urlParams.has('error')) {
-    showError('Error starting task. Please try again.');
-}
-</script>
-
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random size and position
+                const size = Math.random() * 20 + 5;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Random color from neon palette
+                const colors = ['#00c6ff', '#0072ff', '#ff00ff', '#00ffcc'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Random animation delay
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // Update file input label
+        document.getElementById('txtFile').addEventListener('change', function(e) {
+            const label = document.getElementById('fileLabel');
+            if (this.files.length > 0) {
+                label.textContent = this.files[0].name;
+            } else {
+                label.textContent = 'Select TXT file with messages';
+            }
+        });
+        
+        // Form submission handling
+        document.getElementById('taskForm').addEventListener('submit', function(e) {
+            const button = this.querySelector('button[type="submit"]');
+            button.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> PROCESSING...';
+            button.disabled = true;
+        });
+        
+        // Initialize the page
+        window.addEventListener('load', function() {
+            createParticles();
+        });
+    </script>
 </body>
 </html>
