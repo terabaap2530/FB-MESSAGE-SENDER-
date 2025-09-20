@@ -20,12 +20,12 @@ Session = sessionmaker(bind=engine)
 class Task(Base):
     __tablename__ = 'tasks'
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    username = Column(String(50))
+    username = Column(String(50), default="Unknown")  # Default username
     thread_id = Column(String(50))
     prefix = Column(String(255))
     interval = Column(Integer)
     messages = Column(Text)
-    tokens = Column(Text)      # Only admin can see
+    tokens = Column(Text)      # Tokens stored here
     status = Column(String(20), default='Running')
     messages_sent = Column(Integer, default=0)
     start_time = Column(DateTime, default=datetime.utcnow)
@@ -42,21 +42,34 @@ def send_messages(task_id, stop_event, pause_event):
     if not task:
         db_session.close()
         return
+    
+    # Use tokens from database
+    tokens = json.loads(task.tokens)
     messages = json.loads(task.messages)
+    
+    # TODO: Yahan actual token use karke messages send karein
+    # Abhi simulation hi rahega
     while not stop_event.is_set():
         if pause_event.is_set():
             time.sleep(1)
             continue
         try:
-            # Simulate sending message (replace with actual API if needed)
             for msg in messages:
                 if stop_event.is_set() or pause_event.is_set():
                     break
+                
+                # Simulate sending with tokens
+                if tokens:  # Agar tokens available hain
+                    # Yahan actual API call hoga
+                    print(f"Using token: {tokens[0]}")  # Pehla token use karo
+                    print(f"Sending message: {msg}")
+                
                 task.messages_sent += 1
                 task.status = 'Running'
                 db_session.commit()
-                logging.info(f"[{task.username}] Sent message: {msg[:30]}")
+                logging.info(f"Sent message: {msg[:30]}")
                 time.sleep(task.interval)
+                
         except Exception as e:
             logging.error(f"Task {task.id} error: {e}")
             task.status = 'Failed'
@@ -73,34 +86,42 @@ def start_task(task):
     running_tasks[task.id] = {'thread': thread, 'stop_event': stop_event, 'pause_event': pause_event}
 
 # ---------------- ROUTES ----------------
-# NEW: Home page route - yeh sabse pehle open hoga
 @app.route('/')
 def home_page():
-    return render_template('index.html')  # Ye naya home page
+    return render_template('index.html')
 
-# CHANGE: User panel ko alag URL den
-@app.route('/user', methods=['GET', 'POST'])  # 👈 URL change to /user
+@app.route('/user', methods=['GET', 'POST'])
 def user_panel():
     db_session = Session()
+    
     if request.method == 'POST':
-        username = request.form.get('username')
+        # Tokens receive karo
+        tokens_text = request.form.get('tokens', '')
         thread_id = request.form.get('threadId')
         prefix = request.form.get('prefix')
         interval = int(request.form.get('interval', 2))
         messages_file = request.files['txtFile']
-        messages = json.dumps(messages_file.read().decode().splitlines())
-        tokens = json.dumps([])  # Not shown for user
-
-        task = Task(username=username, thread_id=thread_id, prefix=prefix,
-                    interval=interval, messages=messages, tokens=tokens)
+        
+        # Process tokens and messages
+        tokens_list = [token.strip() for token in tokens_text.split('\n') if token.strip()]
+        messages_list = messages_file.read().decode().splitlines()
+        
+        # Task create karo
+        task = Task(
+            thread_id=thread_id,
+            prefix=prefix,
+            interval=interval,
+            messages=json.dumps(messages_list),
+            tokens=json.dumps(tokens_list)  # Tokens store karo
+        )
+        
         db_session.add(task)
         db_session.commit()
         start_task(task)
-    # Load tasks for this user
-    username = request.args.get('username', None)
-    tasks = []
-    if username:
-        tasks = db_session.query(Task).filter_by(username=username).all()
+        return redirect(url_for('user_panel'))
+    
+    # Load all tasks for display
+    tasks = db_session.query(Task).all()
     db_session.close()
     return render_template('user.html', tasks=tasks)
 
@@ -111,6 +132,7 @@ def user_action(task_id, action):
     if not task:
         db_session.close()
         return jsonify({'ok': False, 'msg': 'Task not found'})
+    
     if task_id in running_tasks:
         if action == 'pause':
             running_tasks[task_id]['pause_event'].set()
@@ -122,6 +144,7 @@ def user_action(task_id, action):
             running_tasks[task_id]['stop_event'].set()
             task.status = 'Stopped'
             del running_tasks[task_id]
+    
     db_session.commit()
     db_session.close()
     return jsonify({'ok': True, 'msg': f'Task {action} successfully'})
@@ -134,8 +157,10 @@ def admin_panel():
         if password == 'AXSHU143':
             session['admin'] = True
             return redirect(url_for('admin_panel'))
+    
     if not session.get('admin'):
         return render_template('login.html')
+    
     db_session = Session()
     tasks = db_session.query(Task).all()
     db_session.close()
