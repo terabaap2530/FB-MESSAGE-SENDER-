@@ -1,4 +1,6 @@
-Flask
-SQLAlchemy
-requests
 gunicorn
+Flask==2.3.3
+requests==2.31.0
+SQLAlchemy==2.0.20
+Flask-SocketIO==5.3.6
+python-socketio==5.8.0
