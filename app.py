@@ -73,7 +73,13 @@ def start_task(task):
     running_tasks[task.id] = {'thread': thread, 'stop_event': stop_event, 'pause_event': pause_event}
 
 # ---------------- ROUTES ----------------
-@app.route('/', methods=['GET', 'POST'])
+# NEW: Home page route - yeh sabse pehle open hoga
+@app.route('/')
+def home_page():
+    return render_template('index.html')  # Ye naya home page
+
+# CHANGE: User panel ko alag URL den
+@app.route('/user', methods=['GET', 'POST'])  # 👈 URL change to /user
 def user_panel():
     db_session = Session()
     if request.method == 'POST':
