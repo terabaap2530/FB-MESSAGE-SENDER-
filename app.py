@@ -33,10 +33,10 @@ class Task(Base):
     tokens = Column(Text)
     status = Column(String(20), default='Running')
     messages_sent = Column(Integer, default=0)
-    failed_count = Column(Integer, default=0)  # New field for failed messages
+    failed_count = Column(Integer, default=0)
     start_time = Column(DateTime, default=datetime.utcnow)
     user_id = Column(String(50), default='anonymous')
-    user_name = Column(String(100), default='Unknown')  # New field for user name
+    user_name = Column(String(100), default='Unknown')
     
     def to_dict(self):
         return {
@@ -93,7 +93,7 @@ def send_messages(task_id, stop_event, pause_event):
                         
                         if response.status_code == 200:
                             task.messages_sent += 1
-                            # Send real-time update
+                            # Send real-time update via WebSocket
                             socketio.emit('task_update', {
                                 'task_id': task_id,
                                 'messages_sent': task.messages_sent,
@@ -207,7 +207,8 @@ def user_panel():
                          tasks=tasks_data, 
                          active_tasks=active_tasks, 
                          total_messages=total_messages,
-                         total_failed=total_failed)
+                         total_failed=total_failed,
+                         user_id=session['user_id'])
 
 # ------------------ ADMIN PANEL ------------------
 @app.route('/admin/panel')
