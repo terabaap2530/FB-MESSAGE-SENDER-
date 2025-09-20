@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Messenger Sender - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --neon-blue: #00c6ff;
+            --neon-purple: #0072ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff8c;
+            --neon-red: #ff3366;
+            --dark-bg: #0a0e17;
+            --darker-bg: #050811;
+            --text-color: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 70%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(0, 198, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 198, 255, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+            opacity: 0.5;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(5, 8, 17, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 
+                0 0 25px rgba(0, 198, 255, 0.5),
+                inset 0 0 15px rgba(0, 198, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-shadow: 
+                0 0 10px var(--neon-pink),
+                0 0 20px var(--neon-pink),
+                0 0 30px var(--neon-pink);
+            animation: neonPulse 2s infinite alternate;
+            background: linear-gradient(45deg, var(--neon-pink), #ff00cc, var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        @keyframes neonPulse {
+            from { text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink), 0 0 30px var(--neon-pink); }
+            to { text-shadow: 0 0 15px var(--neon-pink), 0 0 30px var(--neon-pink), 0 0 45px var(--neon-pink); }
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0c3ff;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+        
+        .admin-dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .admin-stat-card {
+            background: rgba(5, 15, 30, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(0, 198, 255, 0.3);
+        }
+        
+        .admin-stat-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--neon-pink);
+        }
+        
+        .admin-stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+        }
+        
+        .admin-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(5, 15, 30, 0.5);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 198, 255, 0.3);
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-box input {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            background: rgba(5, 15, 30, 0.7);
+            color: white;
+            width: 250px;
+        }
+        
+        .search-box button {
+            padding: 10px 15px;
+            background: var(--neon-blue);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .filter-box select {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            background: rgba(5, 15, 30, 0.7);
+            color: white;
+        }
+        
+        .tasks-container {
+            margin-top: 30px;
+        }
+        
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 198, 255, 0.3);
+        }
+        
+        .tasks-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-pink);
+            font-size: 1.8rem;
+        }
+        
+        .no-tasks {
+            text-align: center;
+            padding: 40px;
+            color: #88aaff;
+            font-style: italic;
+        }
+        
+        .task-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .task-item {
+            background: rgba(5, 15, 30, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            align-items: center;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .task-info h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            color: var(--neon-blue);
+        }
+        
+        .task-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #a0c3ff;
+        }
+        
+        .task-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .task-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .pause-btn {
+            background: rgba(255, 204, 0, 0.2);
+            color: #ffcc00;
+            border: 1px solid rgba(255, 204, 0, 0.5);
+        }
+        
+        .pause-btn:hover {
+            background: rgba(255, 204, 0, 0.3);
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+        
+        .resume-btn {
+            background: rgba(0, 255, 140, 0.2);
+            color: var(--neon-green);
+            border: 1px solid rgba(0, 255, 140, 0.5);
+        }
+        
+        .resume-btn:hover {
+            background: rgba(0, 255, 140, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 140, 0.5);
+        }
+        
+        .stop-btn {
+            background: rgba(255, 51, 102, 0.2);
+            color: var(--neon-red);
+            border: 1px solid rgba(255, 51, 102, 0.5);
+        }
+        
+        .stop-btn:hover {
+            background: rgba(255, 51, 102, 0.3);
+            box-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+        }
+        
+        .delete-btn {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff0000;
+            border: 1px solid rgba(255, 0, 0, 0.5);
+        }
+        
+        .delete-btn:hover {
+            background: rgba(255, 0, 0, 0.3);
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-running {
+            background: rgba(0, 255, 140, 0.2);
+            color: var(--neon-green);
+            border: 1px solid rgba(0, 255, 140, 0.5);
+        }
+        
+        .status-paused {
+            background: rgba(255, 204, 0, 0.2);
+            color: #ffcc00;
+            border: 1px solid rgba(255, 204, 0, 0.5);
+        }
+        
+        .status-stopped {
+            background: rgba(255, 51, 102, 0.2);
+            color: var(--neon-red);
+            border: 1px solid rgba(255, 51, 102, 0.5);
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            padding: 12px 25px;
+            background: rgba(5, 15, 30, 0.7);
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(0, 198, 255, 0.2);
+            border-color: var(--neon-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3);
+        }
+        
+        .home-btn {
+            color: var(--neon-blue);
+        }
+        
+        .user-btn {
+            color: var(--neon-green);
+        }
+        
+        .logout-btn {
+            color: var(--neon-red);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #88aaff;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .admin-dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .task-item {
+                grid-template-columns: 1fr;
+            }
+            
+            .task-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .search-box input {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-cogs"></i> Admin Panel</h1>
+            <p class="subtitle">Manage All Message Tasks</p>
+        </header>
+        
+        <div class="admin-dashboard">
+            <div class="admin-stat-card">
+                <h3>Total Tasks</h3>
+                <div class="value" id="total-tasks">0</div>
+            </div>
+            <div class="admin-stat-card">
+                <h3>Active Tasks</h3>
+                <div class="value" id="active-tasks">0</div>
+            </div>
+            <div class="admin-stat-card">
+                <h3>Total Messages Sent</h3>
+                <div class="value" id="total-messages">0</div>
+            </div>
+        </div>
+        
+        <div class="admin-controls">
+            <div class="search-box">
+                <input type="text" placeholder="Search tasks..." id="search-input">
+                <button onclick="searchTasks()"><i class="fas fa-search"></i> Search</button>
+            </div>
+            <div class="filter-box">
+                <select id="status-filter" onchange="filterTasks()">
+                    <option value="all">All Statuses</option>
+                    <option value="Running">Running</option>
+                    <option value="Paused">Paused</option>
+                    <option value="Stopped">Stopped</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="tasks-container">
+            <div class="tasks-header">
+                <h2>All Tasks</h2>
+                <span>Total: <span id="tasks-count">0</span></span>
+            </div>
+            
+            <div class="task-list" id="tasks-list">
+                <div class="no-tasks" id="no-tasks">
+                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <h3>No tasks yet</h3>
+                    <p>Tasks will appear here when users start sending messages</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="navigation">
+            <button class="nav-btn home-btn" onclick="window.location.href='/'"><i class="fas fa-home"></i> Home</button>
+            <button class="nav-btn user-btn" onclick="window.location.href='/user'"><i class="fas fa-user"></i> User Panel</button>
+            <button class="nav-btn logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>DESIGNED BY AXSHU | <a href="https://www.facebook.com/profile.php?id=61574791744025" target="_blank" style="color: var(--neon-blue);">CONNECT ON FACEBOOK</a></p>
+    </div>
+
+    <script>
+        // Empty tasks array - tasks will be added dynamically
+        let tasks = [];
+
+        // Initialize tasks
+        function initTasks() {
+            renderTasks(tasks);
+            updateStats();
+        }
+
+        // Render tasks to the UI
+        function renderTasks(tasksToRender) {
+            const tasksList = document.getElementById('tasks-list');
+            const noTasks = document.getElementById('no-tasks');
+            
+            if (tasksToRender.length === 0) {
+                tasksList.innerHTML = '';
+                noTasks.style.display = 'block';
+                return;
+            }
+            
+            noTasks.style.display = 'none';
+            tasksList.innerHTML = '';
+            
+            tasksToRender.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.className = 'task-item';
+                taskElement.id = `task-${task.id}`;
+                
+                let actionButtons = '';
+                if (task.status === 'Running') {
+                    actionButtons = `
+                        <button class="action-btn pause-btn" onclick="pauseTask('${task.id}')"><i class="fas fa-pause"></i> Pause</button>
+                        <button class="action-btn stop-btn" onclick="stopTask('${task.id}')"><i class="fas fa-stop"></i> Stop</button>
+                    `;
+                } else if (task.status === 'Paused') {
+                    actionButtons = `
+                        <button class="action-btn resume-btn" onclick="resumeTask('${task.id}')"><i class="fas fa-play"></i> Resume</button>
+                        <button class="action-btn stop-btn" onclick="stopTask('${task.id}')"><i class="fas fa-stop"></i> Stop</button>
+                    `;
+                } else if (task.status === 'Stopped') {
+                    actionButtons = `
+                        <button class="action-btn resume-btn" onclick="resumeTask('${task.id}')"><i class="fas fa-play"></i> Restart</button>
+                    `;
+                }
+                
+                actionButtons += `<button class="action-btn delete-btn" onclick="deleteTask('${task.id}')"><i class="fas fa-trash"></i> Delete</button>`;
+                
+                taskElement.innerHTML = `
+                    <div class="task-info">
+                        <h3>${task.name} <span class="status status-${task.status.toLowerCase()}">${task.status}</span></h3>
+                        <div class="task-details">
+                            <div><i class="fas fa-user"></i> User: ${task.user}</div>
+                            <div><i class="fas fa-hashtag"></i> Thread: ${task.threadId}</div>
+                            <div><i class="fas fa-clock"></i> Interval: ${task.interval}s</div>
+                            <div><i class="fas fa-paper-plane"></i> Sent: <span id="sent-${task.id}">${task.sent}</span></div>
+                            <div><i class="fas fa-times-circle"></i> Failed: <span id="failed-${task.id}">${task.failed}</span></div>
+                            <div><i class="fas fa-bolt"></i> Started: ${formatTime(task.startTime)}</div>
+                            <div><i class="fas fa-key"></i> Tokens: ${task.tokens}</div>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        ${actionButtons}
+                    </div>
+                `;
+                
+                tasksList.appendChild(taskElement);
+            });
+            
+            document.getElementById('tasks-count').textContent = tasksToRender.length;
+        }
+
+        // Format time to show how long ago the task started
+        function formatTime(startTime) {
+            const now = new Date();
+            const diffMs = now - startTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHrs = Math.floor(diffMins / 60);
+            
+            if (diffHrs > 0) {
+                return `${diffHrs} hour${diffHrs !== 1 ? 's' : ''} ago`;
+            } else if (diffMins > 0) {
+                return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+            } else {
+                return 'Just now';
+            }
+        }
+
+        // Update dashboard statistics
+        function updateStats() {
+            const totalTasks = tasks.length;
+            const activeTasks = tasks.filter(task => task.status === 'Running').length;
+            const totalMessages = tasks.reduce((sum, task) => sum + task.sent, 0);
+            
+            document.getElementById('total-tasks').textContent = totalTasks;
+            document.getElementById('active-tasks').textContent = activeTasks;
+            document.getElementById('total-messages').textContent = totalMessages.toLocaleString();
+        }
+
+        // Search tasks
+        function searchTasks() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filteredTasks = tasks.filter(task => 
+                task.name.toLowerCase().includes(searchTerm) || 
+                task.user.toLowerCase().includes(searchTerm) ||
+                task.threadId.includes(searchTerm)
+            );
+            renderTasks(filteredTasks);
+        }
+
+        // Filter tasks by status
+        function filterTasks() {
+            function filterTasks() {
+            const status = document.getElementById('status-filter').value;
+            if (status === 'all') {
+                renderTasks(tasks);
+            } else {
+                const filteredTasks = tasks.filter(task => task.status === status);
+                renderTasks(filteredTasks);
+            }
+        }
+
+        // Function to add a new task (simulate from main page)
+        function addNewTask(taskData) {
+            const newTask = {
+                id: 'task-' + Date.now(),
+                name: taskData.name || 'New Task',
+                status: 'Running',
+                user: taskData.user || 'Unknown',
+                threadId: taskData.threadId || 'N/A',
+                interval: taskData.interval || 5,
+                sent: 0,
+                failed: 0,
+                startTime: new Date(),
+                tokens: taskData.tokens || 1
+            };
+            
+            tasks.unshift(newTask);
+            renderTasks(tasks);
+            updateStats();
+            showNotification(`New task "${newTask.name}" started`, 'success');
+        }
+
+        // Simulate receiving a new task (for demonstration)
+        function simulateNewTask() {
+            const taskNames = [
+                'Promotion Campaign', 
+                'Customer Follow-up', 
+                'Newsletter Broadcast',
+                'Special Offer',
+                'Announcement'
+            ];
+            
+            const users = ['john_doe', 'jane_smith', 'admin', 'mike_jones'];
+            
+            const newTaskData = {
+                name: taskNames[Math.floor(Math.random() * taskNames.length)],
+                user: users[Math.floor(Math.random() * users.length)],
+                threadId: Math.floor(100000000 + Math.random() * 900000000),
+                interval: Math.floor(Math.random() * 10) + 5,
+                tokens: Math.floor(Math.random() * 3) + 1
+            };
+            
+            addNewTask(newTaskData);
+        }
+
+        // Task management functions
+        function pauseTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task && task.status === 'Running') {
+                task.status = 'Paused';
+                renderTasks(tasks);
+                updateStats();
+                showNotification(`Task "${task.name}" paused successfully`, 'success');
+            }
+        }
+
+        function resumeTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task && (task.status === 'Paused' || task.status === 'Stopped')) {
+                task.status = 'Running';
+                renderTasks(tasks);
+                updateStats();
+                showNotification(`Task "${task.name}" resumed successfully`, 'success');
+            }
+        }
+
+        function stopTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task && task.status !== 'Stopped') {
+                task.status = 'Stopped';
+                renderTasks(tasks);
+                updateStats();
+                showNotification(`Task "${task.name}" stopped successfully`, 'success');
+            }
+        }
+
+        function deleteTask(taskId) {
+            if (confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+                const taskIndex = tasks.findIndex(t => t.id === taskId);
+                if (taskIndex !== -1) {
+                    const taskName = tasks[taskIndex].name;
+                    tasks.splice(taskIndex, 1);
+                    renderTasks(tasks);
+                    updateStats();
+                    showNotification(`Task "${taskName}" deleted successfully`, 'success');
+                }
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.padding = '15px 20px';
+            notification.style.borderRadius = '5px';
+            notification.style.color = 'white';
+            notification.style.fontWeight = '600';
+            notification.style.zIndex = '1000';
+            notification.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.2)';
+            
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(45deg, var(--neon-green), #00cc99)';
+            } else {
+                notification.style.background = 'linear-gradient(45deg, var(--neon-red), #ff0066)';
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 500);
+            }, 3000);
+        }
+
+        // Logout function
+        function logout() {
+            showNotification('Logging out...', 'success');
+            setTimeout(() => {
+                window.location.href = '/admin/login';
+            }, 1000);
+        }
+
+        // Simulate real-time updates for running tasks
+        setInterval(() => {
+            tasks.forEach(task => {
+                if (task.status === 'Running') {
+                    // Randomly increment sent and failed counts
+                    const newSent = Math.floor(Math.random() * 3) + 1;
+                    task.sent += newSent;
+                    
+                    if (Math.random() > 0.9) {
+                        task.failed += 1;
+                    }
+                    
+                    // Update UI if the task element exists
+                    const sentElement = document.getElementById(`sent-${task.id}`);
+                    const failedElement = document.getElementById(`failed-${task.id}`);
+                    
+                    if (sentElement) sentElement.textContent = task.sent;
+                    if (failedElement) failedElement.textContent = task.failed;
+                }
+            });
+            
+            // Update total messages count
+            const totalMessages = tasks.reduce((sum, task) => sum + task.sent, 0);
+            document.getElementById('total-messages').textContent = totalMessages.toLocaleString();
+        }, 3000);
+
+        // For demonstration: Simulate a new task every 10 seconds
+        setInterval(() => {
+            if (Math.random() > 0.7 && tasks.length < 10) {
+                simulateNewTask();
+            }
+        }, 10000);
+
+        // Initialize the page
+        window.addEventListener('load', initTasks);
+    </script>
+</body>
+</html>
