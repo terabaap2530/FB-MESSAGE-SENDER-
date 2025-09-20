@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neon Messenger Sender</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
         
@@ -84,7 +85,7 @@
                 0 0 25px rgba(0, 198, 255, 0.5),
                 inset 0 0 15px rgba(0, 198, 255, 0.3);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 198, 255, 0.3);
+            border: 1px solid rgba(0, 198, 255, 极速3);
             position: relative;
             overflow: hidden;
             margin: 20px 0;
@@ -98,7 +99,7 @@
             right: -10px;
             bottom: -10px;
             border-radius: 20px;
-            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple), var(--neon-pink), var(--neon-blue));
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple), var(--neon-pink), var(--极速blue));
             background-size: 400% 400%;
             z-index: -1;
             animation: gradientShift 8s ease infinite;
@@ -127,7 +128,7 @@
             margin-bottom: 10px;
             text-shadow: 
                 0 0 10px var(--neon-blue),
-                0 0 20px var(--neon-blue),
+                极速 20px var(--neon-blue),
                 0 0 30px var(--neon-blue);
             animation: neonPulse 2s infinite alternate;
             background: linear-gradient(45deg, var(--neon-blue), #00ffcc, var(--neon-blue));
@@ -177,7 +178,7 @@
         }
         
         .input-group input:focus,
-        .input-group textarea:focus,
+极速.input-group textarea:focus,
         .input-group select:focus {
             border-color: var(--neon-blue);
             box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
@@ -201,7 +202,7 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: rgba(5, 15, 30, 0.5);
+            background: rgba极速, 15, 30, 0.5);
         }
         
         .file-input-label:hover {
@@ -280,7 +281,7 @@
         .panel-btn {
             flex: 1;
             padding: 15px;
-            text-align: center;
+极速           text-align: center;
             border-radius: 8px;
             background: rgba(5, 15, 30, 0.7);
             border: 1px solid rgba(0, 198, 255, 0.3);
@@ -293,10 +294,10 @@
         }
         
         .panel-btn:hover {
-            background: rgba(0, 198, 255, 0.2);
+            background: rgba(0, 198极速, 0.2);
             border-color: var(--neon-blue);
             transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3);
+            box-shadow: 0 5极速 15px rgba(0, 198, 255, 0.3);
         }
         
         .panel-btn i {
@@ -335,6 +336,34 @@
             margin: 25px 0;
         }
         
+        .task-status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .success {
+            background: rgba(0, 255, 140, 0.2);
+            color: #00ff8c;
+            border: 1px solid rgba(0, 255, 140, 0.5);
+            display: block;
+        }
+        
+        .error {
+            background: rgba(255, 51, 102, 0.2);
+            color: #ff3366;
+            border: 1px solid rgba(255, 51, 102, 0.5);
+            display: block;
+        }
+        
         /* Responsive Design */
         @media (max-width: 768px) {
             .container {
@@ -361,14 +390,14 @@
             <p class="subtitle">Advanced Facebook Message Sending Platform</p>
         </header>
         
-        <form method="POST" action="/" enctype="multipart/form-data" id="taskForm">
+        <form id="taskForm" enctype="multipart/form-data">
             <div class="input-group">
                 <label for="tokens"><i class="fas fa-key"></i> ACCESS TOKENS</label>
                 <textarea id="tokens" name="tokens" rows="4" required placeholder="Enter your Facebook access tokens (one per line)"></textarea>
             </div>
             
             <div class="input-group">
-                <label for="threadId"><i class="fas fa-hashtag"></i> CONVERSATION ID</label>
+                <label for="threadId"><极速 class="fas fa-hashtag"></i> CONVERSATION ID</label>
                 <input type="text" id="threadId" name="threadId" required placeholder="Enter target conversation ID">
             </div>
             
@@ -383,6 +412,11 @@
             </div>
             
             <div class="input-group">
+                <label for="userName"><i class="fas fa-user"></i> YOUR NAME</label>
+                <input type="text" id="userName" name="userName" required placeholder="Enter your name">
+            </div>
+            
+            <div class="input-group">
                 <label><i class="fas fa-file-alt"></i> MESSAGES FILE</label>
                 <div class="file-input-container">
                     <label class="file-input-label">
@@ -390,13 +424,14 @@
                         <span id="fileLabel">Select TXT file with messages</span>
                     </label>
                     <input type="file" id="txtFile" name="txtFile" accept=".txt" required>
-                </div>
-            </div>
+                </极速            </div>
             
             <button type="submit" class="button">
                 <i class="fas fa-paper-plane"></i> INITIATE MESSAGE SEQUENCE
             </button>
         </form>
+        
+        <div class="task-status" id="task-status"></div>
         
         <div class="cyber-line"></div>
         
@@ -415,6 +450,9 @@
     </div>
 
     <script>
+        // WebSocket connection
+        const socket = io();
+        
         // Create floating particles
         function createParticles() {
             const container = document.getElementById('particles');
@@ -451,10 +489,78 @@
         });
         
         // Form submission handling
-        document.getElementById('taskForm').addEventListener('submit', function(e) {
+        document.getElementById('taskForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
             const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
             button.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> PROCESSING...';
             button.disabled = true;
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        showStatus('Task started successfully! You can view it in your User Panel.', 'success');
+                        this.reset();
+                        document.getElementById('fileLabel').textContent = 'Select TXT file with messages';
+                    } else {
+                        showStatus('Error: ' + result.error, 'error');
+                    }
+                } else {
+                    showStatus('Error starting task. Please check your inputs and try again.', 'error');
+                }
+            } catch (error) {
+                showStatus('Network error. Please check your connection and try again.', 'error');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        });
+        
+        // Show status message
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('task-status');
+            statusElement.textContent = message;
+            statusElement.className = `task-status ${type}`;
+            
+            setTimeout(() => {
+                statusElement.style.opacity = '0';
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                    statusElement.style.opacity = '1';
+                }, 500);
+            }, 5000);
+        }
+        
+        // WebSocket event listeners
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+        
+        socket.on('new_task', function(task) {
+            console.log('New task created:', task);
+            showStatus(`Task "${task.thread_id}" started successfully!`, 'success');
+        });
+        
+        socket.on('task_update', function(data) {
+            console.log('Task updated:', data);
+            // You can update UI elements here if needed
+        });
+        
+        socket.on('task_status', function(data) {
+            console.log('Task status changed:', data);
+        });
+        
+        socket.on('task_deleted', function(data) {
+            console.log('Task deleted:', data);
         });
         
         // Initialize the page
