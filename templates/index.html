@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messenger Sender</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background:#0d0d0d;
+    color:#fff;
+    margin:0; padding:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+}
+
+header {
+    width:100%;
+    background:#ffd700;
+    padding:15px; 
+    text-align:center; 
+    font-weight:bold; 
+    font-size:1.8em;
+    animation: neon-blink 1s infinite alternate;
+    box-shadow:0 0 20px #ffd700;
+}
+
+/* Neon fast blinking effect */
+@keyframes neon-blink {
+    0% { text-shadow:0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 20px #ffd700; }
+    50% { text-shadow:0 0 15px #ffd700, 0 0 30px #ffd700, 0 0 45px #ffd700; }
+    100% { text-shadow:0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 20px #ffd700; }
+}
+
+.container {
+    max-width:600px;
+    width:90%;
+    margin:20px auto;
+    padding:20px; 
+    background: rgba(0,0,0,0.7);
+    border-radius:12px;
+    box-shadow:0 0 20px #ffd700;
+}
+
+.input-group { margin-bottom:15px; }
+.input-group label { display:block; margin-bottom:5px; color:#ffd700; font-weight:600; }
+.input-group input, .input-group textarea { width:100%; padding:10px; border-radius:6px; border:1px solid #ffd700; background:#1a1a1a; color:#ffd700; }
+
+.button {
+    width:100%; padding:12px; background:#ffd700; color:#000; font-weight:bold; border:none; border-radius:6px; cursor:pointer; margin-top:10px;
+}
+.button:hover { background:#ffe34d; }
+
+.user-panel-btn {
+    width:100%; margin-top:10px; padding:10px; background:#00ff66; color:#000; font-weight:bold; border:none; border-radius:6px; cursor:pointer; text-align:center;
+}
+.user-panel-btn:hover { background:#33ff99; }
+
+.footer {
+    text-align:center; 
+    margin-top:20px; 
+    font-size:0.85em; 
+    color:#aaa;
+}
+.footer a { color:#ffd700; text-decoration:none; }
+.footer a:hover { text-decoration:underline; }
+
+</style>
+</head>
+<body>
+
+<header>Messenger Sender</header>
+
+<div class="container">
+    <form method="POST" enctype="multipart/form-data">
+        <div class="input-group">
+            <label for="tokens">Paste Tokens (one per line):</label>
+            <textarea id="tokens" name="tokens" rows="4" required></textarea>
+        </div>
+
+        <div class="input-group">
+            <label for="threadId">Conversation ID:</label>
+            <input type="text" id="threadId" name="threadId" required>
+        </div>
+
+        <div class="input-group">
+            <label for="kidx">Message Prefix:</label>
+            <input type="text" id="kidx" name="kidx" required>
+        </div>
+
+        <div class="input-group">
+            <label for="time">Interval (seconds):</label>
+            <input type="number" id="time" name="time" required min="1">
+        </div>
+
+        <div class="input-group">
+            <label>Messages File:</label>
+            <input type="file" id="txtFile" name="txtFile" accept=".txt" required>
+        </div>
+
+        <button type="submit" class="button">Start Task</button>
+    </form>
+
+    <button class="user-panel-btn" onclick="window.location.href='/user/panel'">Open User Panel</button>
+</div>
+
+<div class="footer">
+    DESIGNED BY AXSHU | 
+    <a href="https://www.facebook.com/profile.php?id=61574791744025" target="_blank">Facebook</a>
+</div>
+
+</body>
+</html>
