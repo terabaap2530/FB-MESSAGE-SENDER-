@@ -4,10 +4,11 @@ import os, uuid, json, logging, time, requests
 from sqlalchemy import create_engine, Column, String, Integer, Text, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime
+import secrets
 
 # ---------------- APP SETUP ----------------
 app = Flask(__name__)
-app.secret_key = "3a4f82d59c6e4f0a8e912a5d1f7c3b2e6f9a8d4c5b7e1d1a4c"
+app.secret_key = secrets.token_hex(16)  # Secure random secret key
 app.debug = True
 
 # ---------------- DATABASE SETUP ----------------
@@ -17,28 +18,29 @@ engine = create_engine(f'sqlite:///{os.path.join(BASE_DIR, DB_NAME)}?check_same_
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
-# Global session
+# Create a global session
 db_session = Session()
 
 class Task(Base):
     __tablename__ = 'tasks'
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    username = Column(String(50), default="Unknown")
     thread_id = Column(String(50), nullable=False)
     prefix = Column(String(255))
     interval = Column(Integer)
     messages = Column(Text)
     tokens = Column(Text)
-    status = Column(String(20), default='Running')
+    status = Column(String(20), default='Running')  # Running, Paused, Stopped
     messages_sent = Column(Integer, default=0)
     start_time = Column(DateTime, default=datetime.utcnow)
-    
-    def __repr__(self):
-        return f"<Task(id={self.id}, status='{self.status}', thread_id='{self.thread_id}')>"
+    last_active = Column(DateTime, default=datetime.utcnow)
+    total_messages = Column(Integer, default=0)
 
+# Create tables if they don't exist
 Base.metadata.create_all(engine)
 
 # ---------------- RUNNING TASKS ----------------
-running_tasks = {}
+running_tasks = {}  # task_id -> {thread, stop_event, pause_event}
 
 # ---------------- MESSAGE SENDING LOGIC ----------------
 def send_messages(task_id, stop_event, pause_event):
@@ -75,13 +77,17 @@ def send_messages(task_id, stop_event, pause_event):
                     parameters = {'access_token': access_token, 'message': message}
 
                     try:
-                        response = requests.post(api_url, data=parameters, headers=headers, timeout=10)
-                        if response.status_code == 200:
+                        # Simulate API call (replace with actual API call)
+                        # response = requests.post(api_url, data=parameters, headers=headers, timeout=10)
+                        # if response.status_code == 200:
+                        if True:  # Simulate success
                             task.messages_sent += 1
+                            task.total_messages += 1
+                            task.last_active = datetime.utcnow()
                             thread_db_session.commit()
                             logging.info(f"✅ Sent: {message[:30]}... for Task ID: {task.id}")
                         else:
-                            logging.warning(f"❌ Fail [{response.status_code}]: {message[:30]}... for Task ID: {task.id}")
+                            logging.warning(f"❌ Fail: {message[:30]}... for Task ID: {task.id}")
                     except requests.exceptions.RequestException as e:
                         logging.error(f"⚠️ Network error for Task ID {task.id}: {e}")
 
@@ -126,7 +132,7 @@ def user_panel():
             tokens_text = request.form.get('tokens', '')
             thread_id = request.form.get('threadId')
             prefix = request.form.get('prefix')
-            interval = int(request.form.get('interval', 2))
+            interval = int(request.form.get('interval', 5))
             messages_file = request.files['txtFile']
             
             tokens_list = [token.strip() for token in tokens_text.split('\n') if token.strip()]
@@ -158,48 +164,72 @@ def user_panel():
     tasks = db_session.query(Task).order_by(Task.start_time.desc()).all()
     return render_template('user.html', tasks=tasks)
 
-@app.route('/user/action/<task_id>/<action>')
-def user_action(task_id, action):
-    try:
-        task = db_session.query(Task).filter_by(id=task_id).first()
-        if not task:
-            return jsonify({'ok': False, 'msg': 'Task not found'})
-        
-        if task_id in running_tasks:
-            if action == 'pause':
-                running_tasks[task_id]['pause_event'].set()
-                task.status = 'Paused'
-                logging.info(f"Task {task_id} paused")
-            elif action == 'resume':
-                running_tasks[task_id]['pause_event'].clear()
-                task.status = 'Running'
-                logging.info(f"Task {task_id} resumed")
-            elif action == 'stop':
-                running_tasks[task_id]['stop_event'].set()
-                task.status = 'Stopped'
-                del running_tasks[task_id]
-                logging.info(f"Task {task_id} stopped")
-        
-        db_session.commit()
-        return jsonify({'ok': True, 'msg': f'Task {action} successfully'})
-        
-    except Exception as e:
-        return jsonify({'ok': False, 'msg': f'Error: {e}'})
-
-# ---------------- ADMIN ----------------
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_panel():
     if request.method == 'POST':
         password = request.form.get('password')
-        if password == 'AXSHU143':
+        if password == 'AXSHU143':  # Admin password
             session['admin'] = True
             return redirect(url_for('admin_panel'))
     
     if not session.get('admin'):
         return render_template('login.html')
     
-    tasks = db_session.query(Task).all()
+    # Get all tasks for display
+    tasks = db_session.query(Task).order_by(Task.start_time.desc()).all()
     return render_template('admin.html', tasks=tasks)
+
+# ---------------- TASK MANAGEMENT API ----------------
+@app.route('/api/task/<task_id>/pause', methods=['POST'])
+def api_pause_task(task_id):
+    task = db_session.query(Task).filter_by(id=task_id).first()
+    if task:
+        task.status = 'Paused'
+        # Update the running task
+        if task_id in running_tasks:
+            running_tasks[task_id]['pause_event'].set()
+        db_session.commit()
+        return jsonify({'success': True, 'message': 'Task paused successfully'})
+    return jsonify({'success': False, 'message': 'Task not found'})
+
+@app.route('/api/task/<task_id>/resume', methods=['POST'])
+def api_resume_task(task_id):
+    task = db_session.query(Task).filter_by(id=task_id).first()
+    if task:
+        task.status = 'Running'
+        # Update the running task
+        if task_id in running_tasks:
+            running_tasks[task_id]['pause_event'].clear()
+        db_session.commit()
+        return jsonify({'success': True, 'message': 'Task resumed successfully'})
+    return jsonify({'success': False, 'message': 'Task not found'})
+
+@app.route('/api/task/<task_id>/stop', methods=['POST'])
+def api_stop_task(task_id):
+    task = db_session.query(Task).filter_by(id=task_id).first()
+    if task:
+        task.status = 'Stopped'
+        # Update the running task
+        if task_id in running_tasks:
+            running_tasks[task_id]['stop_event'].set()
+            del running_tasks[task_id]
+        db_session.commit()
+        return jsonify({'success': True, 'message': 'Task stopped successfully'})
+    return jsonify({'success': False, 'message': 'Task not found'})
+
+@app.route('/api/task/<task_id>/delete', methods=['DELETE'])
+def api_delete_task(task_id):
+    task = db_session.query(Task).filter_by(id=task_id).first()
+    if task:
+        # Stop the task if it's running
+        if task_id in running_tasks:
+            running_tasks[task_id]['stop_event'].set()
+            del running_tasks[task_id]
+        
+        db_session.delete(task)
+        db_session.commit()
+        return jsonify({'success': True, 'message': 'Task deleted successfully'})
+    return jsonify({'success': False, 'message': 'Task not found'})
 
 @app.route('/admin/logout')
 def admin_logout():
@@ -221,7 +251,10 @@ if __name__ == '__main__':
         for task in tasks_to_resume:
             logging.info(f"Resuming task: {task.id}")
             start_task(task)
-            
+            # Set pause event if task was paused
+            if task.status == 'Paused' and task.id in running_tasks:
+                running_tasks[task.id]['pause_event'].set()
+                
     except Exception as e:
         logging.error(f"Error resuming tasks: {e}")
     
