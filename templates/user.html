@@ -1,159 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Panel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --neon-yellow: #ffcc00;
-      --bg-overlay: rgba(10,10,10,0.85);
-    }
-
-    body {
-      margin: 0;
-      font-family: 'Montserrat', sans-serif;
-      background: url('/static/images/bg.jpg') no-repeat center center fixed;
-      background-size: cover;
-      animation: moveBackground 30s infinite linear;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      color: #fff;
-      overflow: hidden;
-    }
-
-    @keyframes moveBackground {
-      0% { background-position: center top; }
-      50% { background-position: center center; }
-      100% { background-position: center bottom; }
-    }
-
-    header, footer {
-      width: 100%;
-      padding: 15px;
-      text-align: center;
-      background: rgba(0,0,0,0.6);
-      color: var(--neon-yellow);
-      font-size: 1.5em;
-      font-weight: bold;
-      text-shadow: 0 0 10px var(--neon-yellow), 0 0 20px var(--neon-yellow);
-      position: fixed;
-      z-index: 1000;
-    }
-
-    header { top: 0; }
-    footer { bottom: 0; font-size: 0.9em; }
-
-    .container {
-      margin-top: 80px;
-      margin-bottom: 60px;
-      width: 90%;
-      max-width: 700px;
-      background-color: var(--bg-overlay);
-      border: 2px solid var(--neon-yellow);
-      border-radius: 15px;
-      padding: 25px;
-      box-shadow: 0 0 25px rgba(255,204,0,0.7);
-      overflow-y: auto;
-      max-height: calc(100vh - 160px);
-    }
-
-    .card {
-      padding: 20px;
-      border: 1px solid var(--neon-yellow);
-      border-radius: 10px;
-      margin-bottom: 20px;
-      background-color: rgba(0,0,0,0.5);
-      box-shadow: 0 0 10px rgba(255,204,0,0.5);
-    }
-
-    .actions button {
-      margin-right: 10px;
-      background-color: var(--neon-yellow);
-      color: #0a0a0a;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      text-transform: uppercase;
-      box-shadow: 0 0 10px rgba(255,204,0,0.6);
-      transition: all 0.3s ease;
-    }
-
-    .actions button:hover {
-      box-shadow: 0 0 20px rgba(255,204,0,0.9), 0 0 35px rgba(255,204,0,0.5);
-      transform: translateY(-2px);
-    }
-
-    #toast {
-      position: fixed;
-      bottom: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: rgba(0,0,0,0.8);
-      color: var(--neon-yellow);
-      padding: 10px 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px var(--neon-yellow), 0 0 20px rgba(255,204,0,0.5);
-      font-weight: bold;
-      display: none;
-      z-index: 1001;
-    }
-
-    #toast.success { display: block; border: 1px solid var(--neon-yellow); }
-    #toast.error { display: block; border: 1px solid red; color: red; box-shadow: 0 0 10px red; }
-  </style>
+<meta charset="UTF-8">
+<title>User Panel</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    background: url('/static/bg.jpg') center/cover fixed;
+    color: #fff;
+}
+.header, .footer {
+    background: rgba(0,0,0,0.6);
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    color: #ffcc00;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.container {
+    max-width: 900px;
+    margin: 20px auto;
+    background: rgba(0,0,0,0.7);
+    border-radius: 12px;
+    padding: 20px;
+    overflow-y: auto;
+    max-height: 75vh;
+}
+.button {
+    padding: 8px 12px;
+    margin: 3px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    color: black;
+    background-color: #ffcc00;
+}
+.task-card {
+    border: 1px solid #ffcc00;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 10px;
+    background: rgba(255,255,0,0.05);
+}
+.task-card b { color: #ffcc00; }
+</style>
 </head>
 <body>
-  <header>User Panel</header>
 
-  <div class="container">
-    <div class="card">
-      <p><b>Username:</b> <span id="username"></span></p>
-      <p><b>Session ID:</b> <span id="session_id"></span></p>
-      <p><b>Status:</b> <span id="status"></span></p>
+<div class="header">
+    User Panel - {{ username }}
+    <a href="/admin" class="button">Admin Panel</a>
+</div>
 
-      <div class="actions">
-        <button onclick="doAction('pause')">Pause</button>
-        <button onclick="doAction('resume')">Resume</button>
-        <button onclick="doAction('stop')">Stop</button>
-      </div>
-    </div>
-  </div>
+<div class="container">
+    <h2>My Tasks</h2>
+    <div id="tasks"></div>
+</div>
 
-  <footer>© 2024 D3V3L0P3D BY AXSHU | 
-    <a href="https://www.facebook.com/profile.php?id=61574791744025" target="_blank">FACEBOOK</a></footer>
-  <div id="toast"></div>
+<div class="footer">© 2024 D3V3L0P3D BY AXSHU | 
+    <a href="https://www.facebook.com/profile.php?id=61574791744025" target="_blank">FACEBOOK</div>
 
-  <script>
-    async function loadSession() {
-      const resp = await fetch("/user/data");
-      const data = await resp.json();
-      document.getElementById("username").innerText = data.username || "-";
-      document.getElementById("session_id").innerText = data.session_id || "-";
-      document.getElementById("status").innerText = data.status || "-";
+<script>
+const username = "{{ username }}";
+
+// Load tasks for this user only
+async function loadTasks() {
+    const resp = await fetch(`/user/data/${username}`);
+    const data = await resp.json();
+    const container = document.getElementById('tasks');
+    container.innerHTML = '';
+    
+    if(!data.tasks || Object.keys(data.tasks).length === 0){
+        container.innerHTML = "<p>No tasks started yet.</p>";
+        return;
     }
-
-    async function doAction(action) {
-      const resp = await fetch(`/user/action/me/${action}`);
-      const j = await resp.json();
-      if (j.ok) showToast(j.msg, "success");
-      else showToast(j.msg || "Error", "error");
-      loadSession();
+    
+    for(let id in data.tasks){
+        const t = data.tasks[id];
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.innerHTML = `
+            <b>Task ID:</b> ${t.task_id}<br>
+            <b>Status:</b> ${t.status} (${t.last_status})<br>
+            <b>Messages Sent:</b> ${t.messages_sent}<br>
+            <b>Details:</b> ${t.details}<br>
+            <button onclick="action('${id}','pause')">Pause</button>
+            <button onclick="action('${id}','resume')">Resume</button>
+            <button onclick="action('${id}','stop')">Stop</button>
+        `;
+        container.appendChild(card);
     }
+}
 
-    function showToast(msg, type){
-      const toast = document.getElementById("toast");
-      toast.innerText = msg;
-      toast.className = type;
-      setTimeout(() => { toast.className = ''; }, 3000);
-    }
+// Send action to backend
+async function action(task_id, act){
+    await fetch(`/user/action/${username}/${task_id}/${act}`, {method: 'POST'});
+    loadTasks();
+}
 
-    setInterval(loadSession, 5000);
-    loadSession();
-  </script>
+// Refresh tasks every 2 seconds
+setInterval(loadTasks, 2000);
+loadTasks();
+</script>
+
 </body>
 </html>
