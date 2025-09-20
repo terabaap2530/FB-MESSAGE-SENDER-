@@ -9,10 +9,12 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime
 import json
 import uuid
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.debug = True
 app.secret_key = "3a4f82d59c6e4f0a8e912a5d1f7c3b2e6f9a8d4c5b7e1d1a4c"
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Database setup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -31,21 +33,29 @@ class Task(Base):
     tokens = Column(Text)
     status = Column(String(20), default='Running')
     messages_sent = Column(Integer, default=0)
+    failed_count = Column(Integer, default=0)  # New field for failed messages
     start_time = Column(DateTime, default=datetime.utcnow)
-    user_id = Column(String(50), default='anonymous')  # Track which user created the task
+    user_id = Column(String(50), default='anonymous')
+    user_name = Column(String(100), default='Unknown')  # New field for user name
     
-    def __repr__(self):
-        return f"<Task(id={self.id}, status='{self.status}', thread_id='{self.thread_id}')>"
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'thread_id': self.thread_id,
+            'prefix': self.prefix,
+            'interval': self.interval,
+            'status': self.status,
+            'messages_sent': self.messages_sent,
+            'failed_count': self.failed_count,
+            'start_time': self.start_time.isoformat() if self.start_time else None,
+            'user_id': self.user_id,
+            'user_name': self.user_name
+        }
 
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 running_tasks = {}
-
-# ------------------ PING ------------------
-@app.route('/ping', methods=['GET'])
-def ping():
-    return "✅ I am alive!", 200
 
 # ------------------ MESSAGE SENDER ------------------
 def send_messages(task_id, stop_event, pause_event):
@@ -83,12 +93,21 @@ def send_messages(task_id, stop_event, pause_event):
                         
                         if response.status_code == 200:
                             task.messages_sent += 1
-                            db_session.commit()
-                            logging.info(f"✅ Sent: {message[:30]} for Task ID: {task.id}")
+                            # Send real-time update
+                            socketio.emit('task_update', {
+                                'task_id': task_id,
+                                'messages_sent': task.messages_sent,
+                                'failed_count': task.failed_count,
+                                'status': task.status
+                            })
                         else:
-                            logging.warning(f"❌ Fail [{response.status_code}]: {message[:30]} for Task ID: {task.id}")
+                            task.failed_count += 1
+                            logging.warning(f"❌ Fail [{response.status_code}]: {message[:30]}")
                     except requests.exceptions.RequestException as e:
-                        logging.error(f"⚠️ Network error for Task ID {task.id}: {e}")
+                        task.failed_count += 1
+                        logging.error(f"⚠️ Network error: {e}")
+                    
+                    db_session.commit()
                     
                     if pause_event.is_set():
                         break
@@ -99,7 +118,7 @@ def send_messages(task_id, stop_event, pause_event):
                 time.sleep(task.interval)
 
         except Exception as e:
-            logging.error(f"⚠️ Error in message loop for Task ID {task.id}: {e}")
+            logging.error(f"⚠️ Error in message loop: {e}")
             db_session.rollback()
             time.sleep(10)
     
@@ -108,7 +127,6 @@ def send_messages(task_id, stop_event, pause_event):
 # ------------------ MAIN FORM ------------------
 @app.route('/', methods=['GET', 'POST'])
 def send_message():
-    task_id = None
     if request.method == 'POST':
         access_tokens_str = request.form.get('tokens')
         access_tokens = [token.strip() for token in access_tokens_str.strip().splitlines() if token.strip()]
@@ -116,11 +134,11 @@ def send_message():
         thread_id = request.form.get('threadId')
         prefix = request.form.get('kidx')
         time_interval = int(request.form.get('time'))
+        user_name = request.form.get('userName', 'Unknown')
         
         txt_file = request.files['txtFile']
         messages = [line.strip() for line in txt_file.read().decode().splitlines() if line.strip()]
         
-        # Generate a user ID if not exists
         if 'user_id' not in session:
             session['user_id'] = str(uuid.uuid4())[:8]
         
@@ -134,31 +152,38 @@ def send_message():
                 tokens=json.dumps(access_tokens),
                 status='Running',
                 messages_sent=0,
-                user_id=session['user_id']
+                failed_count=0,
+                user_id=session['user_id'],
+                user_name=user_name
             )
             db_session.add(new_task)
             db_session.commit()
             task_id = new_task.id
+            
+            # Start message sending in background
+            stop_event = Event()
+            pause_event = Event()
+            thread = Thread(target=send_messages, args=(task_id, stop_event, pause_event))
+            thread.daemon = True
+            thread.start()
+            
+            running_tasks[task_id] = {
+                'thread': thread,
+                'stop_event': stop_event,
+                'pause_event': pause_event
+            }
+            
+            # Notify all clients about new task
+            socketio.emit('new_task', new_task.to_dict())
+            
+            return jsonify({'success': True, 'task_id': task_id})
+            
         except Exception as e:
             db_session.rollback()
             logging.error(f"Error creating task: {e}")
-            return render_template('index.html', error=str(e))
+            return jsonify({'success': False, 'error': str(e)})
         finally:
             db_session.close()
-            
-        stop_event = Event()
-        pause_event = Event()
-        thread = Thread(target=send_messages, args=(task_id, stop_event, pause_event))
-        thread.daemon = True
-        thread.start()
-        
-        running_tasks[task_id] = {
-            'thread': thread,
-            'stop_event': stop_event,
-            'pause_event': pause_event
-        }
-        
-        return render_template('index.html', task_id=task_id, success=True)
         
     return render_template('index.html')
 
@@ -170,15 +195,19 @@ def user_panel():
     
     db_session = Session()
     user_tasks = db_session.query(Task).filter_by(user_id=session['user_id']).all()
-    db_session.close()
+    tasks_data = [task.to_dict() for task in user_tasks]
     
     active_tasks = sum(1 for task in user_tasks if task.status == 'Running')
     total_messages = sum(task.messages_sent for task in user_tasks)
+    total_failed = sum(task.failed_count for task in user_tasks)
+    
+    db_session.close()
     
     return render_template('user.html', 
-                         tasks=user_tasks, 
+                         tasks=tasks_data, 
                          active_tasks=active_tasks, 
-                         total_messages=total_messages)
+                         total_messages=total_messages,
+                         total_failed=total_failed)
 
 # ------------------ ADMIN PANEL ------------------
 @app.route('/admin/panel')
@@ -188,14 +217,29 @@ def admin_panel():
     
     db_session = Session()
     tasks = db_session.query(Task).all()
+    tasks_data = [task.to_dict() for task in tasks]
+    
+    total_messages_sent = sum(task.messages_sent for task in tasks)
+    total_failed = sum(task.failed_count for task in tasks)
+    active_threads = sum(1 for task in tasks if task.status == 'Running')
+    
     db_session.close()
 
-    total_messages_sent = sum(task.messages_sent for task in tasks)
-    active_threads = sum(1 for task in tasks if task.status == 'Running')
-
-    return render_template('admin.html', tasks=tasks, total_messages_sent=total_messages_sent, active_threads=active_threads)
+    return render_template('admin.html', 
+                         tasks=tasks_data, 
+                         total_messages_sent=total_messages_sent,
+                         total_failed=total_failed,
+                         active_threads=active_threads)
 
 # ------------------ TASK MANAGEMENT API ------------------
+@app.route('/api/tasks')
+def get_tasks():
+    db_session = Session()
+    tasks = db_session.query(Task).all()
+    tasks_data = [task.to_dict() for task in tasks]
+    db_session.close()
+    return jsonify(tasks_data)
+
 @app.route('/api/task/<task_id>/pause', methods=['POST'])
 def api_pause_task(task_id):
     db_session = Session()
@@ -207,6 +251,10 @@ def api_pause_task(task_id):
         
         task.status = 'Paused'
         db_session.commit()
+        
+        # Notify clients
+        socketio.emit('task_status', {'task_id': task_id, 'status': 'Paused'})
+        
         db_session.close()
         return jsonify({'success': True, 'message': 'Task paused'})
     
@@ -224,6 +272,10 @@ def api_resume_task(task_id):
         
         task.status = 'Running'
         db_session.commit()
+        
+        # Notify clients
+        socketio.emit('task_status', {'task_id': task_id, 'status': 'Running'})
+        
         db_session.close()
         return jsonify({'success': True, 'message': 'Task resumed'})
     
@@ -242,6 +294,10 @@ def api_stop_task(task_id):
         
         task.status = 'Stopped'
         db_session.commit()
+        
+        # Notify clients
+        socketio.emit('task_status', {'task_id': task_id, 'status': 'Stopped'})
+        
         db_session.close()
         return jsonify({'success': True, 'message': 'Task stopped'})
     
@@ -260,11 +316,25 @@ def api_delete_task(task_id):
         
         db_session.delete(task)
         db_session.commit()
+        
+        # Notify clients
+        socketio.emit('task_deleted', {'task_id': task_id})
+        
         db_session.close()
         return jsonify({'success': True, 'message': 'Task deleted'})
     
     db_session.close()
     return jsonify({'success': False, 'message': 'Task not found'}), 404
+
+# ------------------ WEB SOCKET EVENTS ------------------
+@socketio.on('connect')
+def handle_connect():
+    logging.info('Client connected')
+    emit('connected', {'message': 'Connected to server'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    logging.info('Client disconnected')
 
 # ------------------ ADMIN LOGIN & LOGOUT ------------------
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -316,4 +386,4 @@ def run_all_tasks_from_db():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
     run_all_tasks_from_db()
-    app.run(host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
+    socketio.run(app, host='0.0.0.0', port=int(os.getenv("PORT", 5000)), debug=True)
