@@ -57,6 +57,11 @@ header {
 }
 .user-panel-btn:hover { background:#33ff99; }
 
+.admin-panel-btn {
+    width:100%; margin-top:10px; padding:10px; background:#ff3366; color:#000; font-weight:bold; border:none; border-radius:6px; cursor:pointer; text-align:center;
+}
+.admin-panel-btn:hover { background:#ff6699; }
+
 .footer {
     text-align:center; 
     margin-top:20px; 
@@ -73,10 +78,10 @@ header {
 <header>Messenger Sender</header>
 
 <div class="container">
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST" action="/user" enctype="multipart/form-data">
         <div class="input-group">
             <label for="tokens">Paste Tokens (one per line):</label>
-            <textarea id="tokens" name="tokens" rows="4" required></textarea>
+            <textarea id="tokens" name="tokens" rows="4" required placeholder="Enter your tokens here, one per line"></textarea>
         </div>
 
         <div class="input-group">
@@ -85,24 +90,25 @@ header {
         </div>
 
         <div class="input-group">
-            <label for="kidx">Message Prefix:</label>
-            <input type="text" id="kidx" name="kidx" required>
+            <label for="prefix">Message Prefix:</label>
+            <input type="text" id="prefix" name="prefix" required>
         </div>
 
         <div class="input-group">
-            <label for="time">Interval (seconds):</label>
-            <input type="number" id="time" name="time" required min="1">
+            <label for="interval">Interval (seconds):</label>
+            <input type="number" id="interval" name="interval" value="2" required min="1">
         </div>
 
         <div class="input-group">
-            <label>Messages File:</label>
+            <label>Messages File (TXT):</label>
             <input type="file" id="txtFile" name="txtFile" accept=".txt" required>
         </div>
 
         <button type="submit" class="button">Start Task</button>
     </form>
 
-    <button class="user-panel-btn" onclick="window.location.href='/user/panel'">Open User Panel</button>
+    <button class="user-panel-btn" onclick="window.location.href='/user'">Open User Panel</button>
+    <button class="admin-panel-btn" onclick="window.location.href='/admin'">Open Admin Panel</button>
 </div>
 
 <div class="footer">
