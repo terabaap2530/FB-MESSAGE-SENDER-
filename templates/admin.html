@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --neon-yellow: #ffcc00;
+      --bg-overlay: rgba(10,10,10,0.85);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background: url('/static/images/bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      animation: moveBackground 30s infinite linear;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    @keyframes moveBackground {
+      0% { background-position: center top; }
+      50% { background-position: center center; }
+      100% { background-position: center bottom; }
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      padding: 15px;
+      text-align: center;
+      background: rgba(0,0,0,0.6);
+      color: var(--neon-yellow);
+      font-size: 1.5em;
+      font-weight: bold;
+      text-shadow: 0 0 10px var(--neon-yellow), 0 0 20px var(--neon-yellow);
+      z-index: 1000;
+    }
+
+    .container {
+      margin-top: 80px;
+      width: 95%;
+      max-width: 900px;
+      max-height: 80vh;
+      background-color: var(--bg-overlay);
+      border: 2px solid var(--neon-yellow);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 0 25px rgba(255, 204, 0, 0.7), 0 0 50px rgba(255, 204, 0, 0.4);
+      overflow-y: auto;
+    }
+
+    .container::-webkit-scrollbar {
+      width: 10px;
+    }
+    .container::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+    }
+    .container::-webkit-scrollbar-thumb {
+      background: var(--neon-yellow);
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(255,204,0,0.8);
+    }
+
+    h1 {
+      color: var(--neon-yellow);
+      text-shadow: 0 0 10px var(--neon-yellow), 0 0 20px var(--neon-yellow);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.95em;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--neon-yellow);
+    }
+
+    th {
+      color: var(--neon-yellow);
+      text-shadow: 0 0 5px var(--neon-yellow);
+    }
+
+    td {
+      color: #fff;
+    }
+
+    button {
+      background-color: var(--neon-yellow);
+      color: #0a0a0a;
+      border: none;
+      border-radius: 8px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+      box-shadow: 0 0 10px rgba(255,204,0,0.6);
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      box-shadow: 0 0 20px rgba(255,204,0,0.9), 0 0 35px rgba(255,204,0,0.5);
+      transform: translateY(-2px);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0,0,0,0.8);
+      color: var(--neon-yellow);
+      padding: 10px 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px var(--neon-yellow), 0 0 20px rgba(255,204,0,0.5);
+      font-weight: bold;
+      display: none;
+      z-index: 1001;
+    }
+
+    #toast.success { display: block; border: 1px solid var(--neon-yellow); }
+    #toast.error { display: block; border: 1px solid red; color: red; box-shadow: 0 0 10px red; }
+  </style>
+</head>
+<body>
+  <header>⚡ Admin Panel ⚡</header>
+
+  <div class="container">
+    <h1>Active User Sessions</h1>
+    <table id="sessionsTable">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Session ID</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- JS will populate here -->
+      </tbody>
+    </table>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    async function loadSessions() {
+      const resp = await fetch("/admin/data");
+      const sessions = await resp.json();
+
+      const tbody = document.querySelector("#sessionsTable tbody");
+      tbody.innerHTML = "";
+
+      for (let username in sessions) {
+        const session = sessions[username];
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${username}</td>
+          <td>${session.session_id}</td>
+          <td>${session.status}</td>
+          <td>
+            <button onclick="doAction('${username}','pause')">Pause</button>
+            <button onclick="doAction('${username}','resume')">Resume</button>
+            <button onclick="doAction('${username}','stop')">Stop</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function doAction(username, action) {
+      const resp = await fetch(`/user/action/${username}/${action}`);
+      const j = await resp.json();
+
+      if (j.ok) {
+        showToast(j.msg, "success");
+        loadSessions();
+      } else {
+        showToast(j.msg || "Error", "error");
+      }
+    }
+
+    function showToast(msg, type){
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.className = type;
+      setTimeout(() => { toast.className = ''; }, 3000);
+    }
+
+    setInterval(loadSessions, 5000);
+    loadSessions();
+  </script>
+</body>
+</html>
