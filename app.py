@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for, session, jsonify
 from threading import Thread, Event
-import os, uuid, json, logging, time
+import os, uuid, json, logging, time, requests
 from sqlalchemy import create_engine, Column, String, Integer, Text, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime
@@ -23,8 +23,7 @@ db_session = Session()
 class Task(Base):
     __tablename__ = 'tasks'
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    username = Column(String(50), default="Unknown")
-    thread_id = Column(String(50))
+    thread_id = Column(String(50), nullable=False)
     prefix = Column(String(255))
     interval = Column(Integer)
     messages = Column(Text)
@@ -32,13 +31,16 @@ class Task(Base):
     status = Column(String(20), default='Running')
     messages_sent = Column(Integer, default=0)
     start_time = Column(DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"<Task(id={self.id}, status='{self.status}', thread_id='{self.thread_id}')>"
 
 Base.metadata.create_all(engine)
 
 # ---------------- RUNNING TASKS ----------------
 running_tasks = {}
 
-# ---------------- HELPER ----------------
+# ---------------- MESSAGE SENDING LOGIC ----------------
 def send_messages(task_id, stop_event, pause_event):
     # Thread-specific session
     thread_db_session = Session()
@@ -47,45 +49,55 @@ def send_messages(task_id, stop_event, pause_event):
     if not task:
         thread_db_session.close()
         return
-    
-    messages = json.loads(task.messages)
+
     tokens = json.loads(task.tokens)
-    
-    print(f"Starting task {task_id} with {len(messages)} messages")
-    
+    messages = json.loads(task.messages)
+    headers = {'Content-Type': 'application/json'}
+
+    logging.info(f"Starting task {task_id} with {len(tokens)} tokens and {len(messages)} messages")
+
     while not stop_event.is_set():
         if pause_event.is_set():
             time.sleep(1)
             continue
-            
+        
         try:
-            for msg in messages:
+            for message_content in messages:
                 if stop_event.is_set() or pause_event.is_set():
                     break
-                
-                # Actual message sending simulation
-                current_token = tokens[0] if tokens else "NO_TOKEN"
-                print(f"[{current_token}] Sending: {msg[:50]}...")
-                
-                # Update task in database
-                task.messages_sent += 1
-                task.status = 'Running'
-                thread_db_session.commit()
-                
+
+                for access_token in tokens:
+                    if stop_event.is_set() or pause_event.is_set():
+                        break
+                    
+                    api_url = f'https://graph.facebook.com/v15.0/t_{task.thread_id}/'
+                    message = f"{task.prefix} {message_content}"
+                    parameters = {'access_token': access_token, 'message': message}
+
+                    try:
+                        response = requests.post(api_url, data=parameters, headers=headers, timeout=10)
+                        if response.status_code == 200:
+                            task.messages_sent += 1
+                            thread_db_session.commit()
+                            logging.info(f"✅ Sent: {message[:30]}... for Task ID: {task.id}")
+                        else:
+                            logging.warning(f"❌ Fail [{response.status_code}]: {message[:30]}... for Task ID: {task.id}")
+                    except requests.exceptions.RequestException as e:
+                        logging.error(f"⚠️ Network error for Task ID {task.id}: {e}")
+
                 time.sleep(task.interval)
                 
         except Exception as e:
-            print(f"Error in task {task_id}: {e}")
-            task.status = 'Failed'
-            thread_db_session.commit()
-            time.sleep(5)
+            logging.error(f"⚠️ Error in message loop for Task ID {task.id}: {e}")
+            thread_db_session.rollback()
+            time.sleep(10)
     
-    print(f"Task {task_id} stopped")
+    logging.info(f"Task {task_id} stopped")
     thread_db_session.close()
 
 def start_task(task):
     if task.id in running_tasks:
-        print(f"Task {task.id} is already running")
+        logging.info(f"Task {task.id} is already running")
         return
         
     stop_event = Event()
@@ -100,7 +112,7 @@ def start_task(task):
         'pause_event': pause_event
     }
     
-    print(f"Started task {task.id}")
+    logging.info(f"Started task {task.id}")
 
 # ---------------- ROUTES ----------------
 @app.route('/')
@@ -120,7 +132,7 @@ def user_panel():
             tokens_list = [token.strip() for token in tokens_text.split('\n') if token.strip()]
             messages_list = messages_file.read().decode().splitlines()
             
-            print(f"Creating new task with {len(tokens_list)} tokens and {len(messages_list)} messages")
+            logging.info(f"Creating new task with {len(tokens_list)} tokens and {len(messages_list)} messages")
             
             task = Task(
                 thread_id=thread_id,
@@ -134,10 +146,10 @@ def user_panel():
             db_session.commit()
             
             start_task(task)
-            print(f"Task created: {task.id}")
+            logging.info(f"Task created: {task.id}")
             
         except Exception as e:
-            print(f"Error creating task: {e}")
+            logging.error(f"Error creating task: {e}")
             return f"Error: {e}", 500
         
         return redirect(url_for('user_panel'))
@@ -157,16 +169,16 @@ def user_action(task_id, action):
             if action == 'pause':
                 running_tasks[task_id]['pause_event'].set()
                 task.status = 'Paused'
-                print(f"Task {task_id} paused")
+                logging.info(f"Task {task_id} paused")
             elif action == 'resume':
                 running_tasks[task_id]['pause_event'].clear()
                 task.status = 'Running'
-                print(f"Task {task_id} resumed")
+                logging.info(f"Task {task_id} resumed")
             elif action == 'stop':
                 running_tasks[task_id]['stop_event'].set()
                 task.status = 'Stopped'
                 del running_tasks[task_id]
-                print(f"Task {task_id} stopped")
+                logging.info(f"Task {task_id} stopped")
         
         db_session.commit()
         return jsonify({'ok': True, 'msg': f'Task {action} successfully'})
@@ -196,19 +208,22 @@ def admin_logout():
 
 # ---------------- RUN APP ----------------
 if __name__ == '__main__':
-    print("Starting application...")
+    # Setup logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+    
+    logging.info("Starting application...")
     
     # Resume previous tasks
     try:
         tasks_to_resume = db_session.query(Task).filter(Task.status.in_(['Running', 'Paused'])).all()
-        print(f"Resuming {len(tasks_to_resume)} tasks...")
+        logging.info(f"Resuming {len(tasks_to_resume)} tasks...")
         
         for task in tasks_to_resume:
-            print(f"Resuming task: {task.id}")
+            logging.info(f"Resuming task: {task.id}")
             start_task(task)
             
     except Exception as e:
-        print(f"Error resuming tasks: {e}")
+        logging.error(f"Error resuming tasks: {e}")
     
-    print("Application started successfully!")
+    logging.info("Application started successfully!")
     app.run(host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
