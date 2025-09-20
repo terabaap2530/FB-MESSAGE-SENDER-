@@ -13,6 +13,7 @@ body {
     color:#fff;
     margin:0; padding:0;
     display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    min-height: 100vh;
 }
 
 header {
@@ -24,6 +25,7 @@ header {
     font-size:1.8em;
     animation: neon-blink 1s infinite alternate;
     box-shadow:0 0 20px #ffd700;
+    margin-bottom: 20px;
 }
 
 /* Neon fast blinking effect */
@@ -43,33 +45,163 @@ header {
     box-shadow:0 0 20px #ffd700;
 }
 
-.input-group { margin-bottom:15px; }
-.input-group label { display:block; margin-bottom:5px; color:#ffd700; font-weight:600; }
-.input-group input, .input-group textarea { width:100%; padding:10px; border-radius:6px; border:1px solid #ffd700; background:#1a1a1a; color:#ffd700; }
+.input-group { 
+    margin-bottom:15px; 
+}
+.input-group label { 
+    display:block; 
+    margin-bottom:5px; 
+    color:#ffd700; 
+    font-weight:600; 
+}
+.input-group input, 
+.input-group textarea,
+.input-group select { 
+    width:100%; 
+    padding:12px; 
+    border-radius:6px; 
+    border:2px solid #ffd700; 
+    background:#1a1a1a; 
+    color:#ffd700; 
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+.input-group input:focus,
+.input-group textarea:focus,
+.input-group select:focus {
+    border-color: #ffe34d;
+    outline: none;
+}
+.input-group input::placeholder,
+.input-group textarea::placeholder {
+    color: #666;
+}
+
+.file-input {
+    background: #1a1a1a;
+    padding: 10px;
+    border: 2px dashed #ffd700;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+}
+.file-input:hover {
+    background: #222;
+}
 
 .button {
-    width:100%; padding:12px; background:#ffd700; color:#000; font-weight:bold; border:none; border-radius:6px; cursor:pointer; margin-top:10px;
+    width:100%; 
+    padding:15px; 
+    background:#ffd700; 
+    color:#000; 
+    font-weight:bold; 
+    border:none; 
+    border-radius:6px; 
+    cursor:pointer; 
+    margin-top:15px;
+    font-size: 16px;
+    transition: background 0.3s;
 }
-.button:hover { background:#ffe34d; }
+.button:hover { 
+    background:#ffe34d; 
+}
+.button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
 
 .user-panel-btn {
-    width:100%; margin-top:10px; padding:10px; background:#00ff66; color:#000; font-weight:bold; border:none; border-radius:6px; cursor:pointer; text-align:center;
+    width:100%; 
+    margin-top:10px; 
+    padding:12px; 
+    background:#00ff66; 
+    color:#000; 
+    font-weight:bold; 
+    border:none; 
+    border-radius:6px; 
+    cursor:pointer; 
+    text-align:center;
+    transition: background 0.3s;
 }
-.user-panel-btn:hover { background:#33ff99; }
+.user-panel-btn:hover { 
+    background:#33ff99; 
+}
 
 .admin-panel-btn {
-    width:100%; margin-top:10px; padding:10px; background:#ff3366; color:#000; font-weight:bold; border:none; border-radius:6px; cursor:pointer; text-align:center;
+    width:100%; 
+    margin-top:10px; 
+    padding:12px; 
+    background:#ff3366; 
+    color:#000; 
+    font-weight:bold; 
+    border:none; 
+    border-radius:6px; 
+    cursor:pointer; 
+    text-align:center;
+    transition: background 0.3s;
 }
-.admin-panel-btn:hover { background:#ff6699; }
+.admin-panel-btn:hover { 
+    background:#ff6699; 
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    margin: 10px 0;
+    color: #ffd700;
+}
+
+.message {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    text-align: center;
+    display: none;
+}
+
+.success {
+    background: #00ff66;
+    color: #000;
+}
+
+.error {
+    background: #ff3366;
+    color: #fff;
+}
 
 .footer {
     text-align:center; 
-    margin-top:20px; 
+    margin-top:30px; 
     font-size:0.85em; 
     color:#aaa;
+    padding: 20px;
 }
-.footer a { color:#ffd700; text-decoration:none; }
-.footer a:hover { text-decoration:underline; }
+.footer a { 
+    color:#ffd700; 
+    text-decoration:none; 
+}
+.footer a:hover { 
+    text-decoration:underline; 
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    header {
+        font-size: 1.5em;
+        padding: 10px;
+    }
+    
+    .input-group input, 
+    .input-group textarea,
+    .input-group select {
+        padding: 10px;
+    }
+}
 
 </style>
 </head>
@@ -78,43 +210,131 @@ header {
 <header>Messenger Sender</header>
 
 <div class="container">
-    <form method="POST" action="/user" enctype="multipart/form-data">
+    <form method="POST" action="/user" enctype="multipart/form-data" id="taskForm">
         <div class="input-group">
             <label for="tokens">Paste Tokens (one per line):</label>
-            <textarea id="tokens" name="tokens" rows="4" required placeholder="Enter your tokens here, one per line"></textarea>
+            <textarea id="tokens" name="tokens" rows="4" required placeholder="Enter your Facebook access tokens here, one per line&#10;Example:&#10;EAAG123456789...&#10;EAAG987654321..."></textarea>
         </div>
 
         <div class="input-group">
             <label for="threadId">Conversation ID:</label>
-            <input type="text" id="threadId" name="threadId" required>
+            <input type="text" id="threadId" name="threadId" required placeholder="Enter the conversation/thread ID">
         </div>
 
         <div class="input-group">
             <label for="prefix">Message Prefix:</label>
-            <input type="text" id="prefix" name="prefix" required>
+            <input type="text" id="prefix" name="prefix" required placeholder="Enter prefix for messages">
         </div>
 
         <div class="input-group">
             <label for="interval">Interval (seconds):</label>
-            <input type="number" id="interval" name="interval" value="2" required min="1">
+            <input type="number" id="interval" name="interval" value="5" required min="2" max="60" placeholder="Time between messages">
         </div>
 
         <div class="input-group">
-            <label>Messages File (TXT):</label>
-            <input type="file" id="txtFile" name="txtFile" accept=".txt" required>
+            <label for="txtFile">Messages File (TXT):</label>
+            <div class="file-input" onclick="document.getElementById('txtFile').click()">
+                <span id="fileLabel">📁 Click to select messages file</span>
+                <input type="file" id="txtFile" name="txtFile" accept=".txt" required style="display: none;" onchange="updateFileName()">
+            </div>
         </div>
 
-        <button type="submit" class="button">Start Task</button>
+        <div class="loading" id="loading">
+            ⏳ Starting task, please wait...
+        </div>
+
+        <div class="message success" id="successMessage"></div>
+        <div class="message error" id="errorMessage"></div>
+
+        <button type="submit" class="button" id="submitBtn">🚀 Start Task</button>
     </form>
 
-    <button class="user-panel-btn" onclick="window.location.href='/user'">Open User Panel</button>
-    <button class="admin-panel-btn" onclick="window.location.href='/admin'">Open Admin Panel</button>
+    <button class="user-panel-btn" onclick="window.location.href='/user'">📊 Open User Panel</button>
+    <button class="admin-panel-btn" onclick="window.location.href='/admin'">🔧 Open Admin Panel</button>
 </div>
 
 <div class="footer">
     DESIGNED BY AXSHU | 
     <a href="https://www.facebook.com/profile.php?id=61574791744025" target="_blank">Facebook</a>
 </div>
+
+<script>
+function updateFileName() {
+    const fileInput = document.getElementById('txtFile');
+    const fileLabel = document.getElementById('fileLabel');
+    if (fileInput.files.length > 0) {
+        fileLabel.textContent = '✅ ' + fileInput.files[0].name;
+    } else {
+        fileLabel.textContent = '📁 Click to select messages file';
+    }
+}
+
+document.getElementById('taskForm').addEventListener('submit', function(e) {
+    const submitBtn = document.getElementById('submitBtn');
+    const loading = document.getElementById('loading');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    // Hide previous messages
+    successMessage.style.display = 'none';
+    errorMessage.style.display = 'none';
+    
+    // Show loading
+    submitBtn.disabled = true;
+    loading.style.display = 'block';
+    
+    // Basic validation
+    const tokens = document.getElementById('tokens').value.trim();
+    const threadId = document.getElementById('threadId').value.trim();
+    const file = document.getElementById('txtFile').files[0];
+    
+    if (!tokens) {
+        e.preventDefault();
+        showError('Please enter at least one token');
+        return;
+    }
+    
+    if (!threadId) {
+        e.preventDefault();
+        showError('Please enter a conversation ID');
+        return;
+    }
+    
+    if (!file) {
+        e.preventDefault();
+        showError('Please select a messages file');
+        return;
+    }
+    
+    // Form is valid, let it submit
+});
+
+function showError(message) {
+    const errorMessage = document.getElementById('errorMessage');
+    const loading = document.getElementById('loading');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    loading.style.display = 'none';
+    submitBtn.disabled = false;
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+}
+
+function showSuccess(message) {
+    const successMessage = document.getElementById('successMessage');
+    successMessage.textContent = message;
+    successMessage.style.display = 'block';
+}
+
+// Check for success/error messages in URL parameters
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('success')) {
+    showSuccess('Task started successfully! Check User Panel for status.');
+}
+if (urlParams.has('error')) {
+    showError('Error starting task. Please try again.');
+}
+</script>
 
 </body>
 </html>
