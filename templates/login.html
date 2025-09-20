@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(120deg, #000000, #111111);
+            overflow: hidden;
+        }
+        .container {
+            width: 350px;
+            background: rgba(10,10,10,0.85);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+            border: 2px solid #ffff33; /* neon yellow */
+            box-shadow: 0 0 20px #ffff33, 0 0 40px #ffff33;
+            position: relative;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('https://i.ibb.co/fNw7gZt/neon-bg.gif') repeat; /* animated background */
+            background-size: cover;
+            opacity: 0.1;
+            z-index: -1;
+            animation: move-bg 20s linear infinite;
+        }
+        @keyframes move-bg {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-50%, -50%); }
+        }
+        h1 {
+            color: #ffff33;
+            text-shadow: 0 0 10px #ffff33, 0 0 20px #ffff33;
+            margin-bottom: 25px;
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #ffff33;
+            background-color: #111111;
+            color: #ffff33;
+            font-size: 1em;
+            outline: none;
+            box-shadow: 0 0 10px rgba(255,255,51,0.5);
+        }
+        input[type="password"]:focus {
+            border-color: #ffeb3b;
+            box-shadow: 0 0 15px #ffeb3b;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #ffff33;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            font-size: 1em;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px #ffff33;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #fff200;
+            box-shadow: 0 0 25px #ffff33, 0 0 40px #ffff33;
+            transform: translateY(-2px);
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 0.7em;
+            color: #888;
+        }
+        .footer a {
+            color: #ffff33;
+            text-decoration: none;
+        }
+        .admin-btn {
+            margin-top: 15px;
+            display: inline-block;
+            padding: 8px 12px;
+            background: #ffff33;
+            color: #000;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85em;
+            box-shadow: 0 0 10px #ffff33;
+        }
+        .admin-btn:hover {
+            background: #fff200;
+            box-shadow: 0 0 20px #ffff33;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ADMIN LOGIN</h1>
+        <form method="POST">
+            <input type="password" name="password" placeholder="Enter Admin Password" required>
+            <button type="submit">LOGIN</button>
+        </form>
+        <a href="/" class="admin-btn">Back to User Panel</a>
+        <div class="footer">
+            <p>DESIGNED BY <a href="https://www.facebook.com/profile.php?id=61574791744025" target="_blank">AXSHU</a></p>
+        </div>
+    </div>
+</body>
+</html>
